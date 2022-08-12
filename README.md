@@ -1,5 +1,6 @@
 # img2asm
-Generate assembly code from image.
+Generate assembly code from image.  
+This project is a derivative of another project.
 
 # Usage
 
