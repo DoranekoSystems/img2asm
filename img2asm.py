@@ -109,8 +109,7 @@ def main(filename):
 
     asmcode = ""
     asmcode += ".code\n"
-    asmcode += s()
-    asmcode += "asmcode:\n"
+    asmcode += "asmcode proc EXPORT\n"
     asmcode += init_widen()
     asmcode += p("nop")
     asmcode += p("mov eax, 0")
@@ -127,6 +126,8 @@ def main(filename):
             RC += 1
     asmcode += "done:\n"
     asmcode += p("ret")
+    asmcode += s()
+    asmcode += "asmcode endp\n"
     asmcode += "end"
     with open("Native.asm", mode="w") as f:
         f.write(asmcode)
