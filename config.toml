@@ -1,0 +1,5 @@
+[Option]
+arch = "x64"
+# If true, it will output an assembly that will also work with LARGEADDRESSAWARE:YES.
+# In this case, it will lose its shape slightly.
+large_address_aware_yes = false

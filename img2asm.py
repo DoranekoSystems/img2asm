@@ -2,12 +2,18 @@ import cv2
 import os
 import sys
 import gen
+import toml
 
 INSTRUCTIONS = 26
 WIDTH = 100
 HEIGHT = 100
 TIED = False
 IMAGE = None
+
+with open("config.toml", "rt") as fp:
+    config = toml.load(fp)
+
+LARGEADDRESSAWARE_YES = config["Option"]["large_address_aware_yes"]
 
 
 def image_load(filename):
@@ -112,8 +118,13 @@ def main(filename):
     asmcode += "asmcode proc EXPORT\n"
     asmcode += init_widen()
     asmcode += p("nop")
-    asmcode += p("mov eax, 0")
-    asmcode += p("jmp [s+eax*8]")
+    if LARGEADDRESSAWARE_YES:
+        for i in range(int(WIDTH / 2) + 1):
+            asmcode += p(f"je e_0_{i}")
+            asmcode += p(f"jne e_0_{WIDTH - i}")
+    else:
+        asmcode += p("mov eax, 0")
+        asmcode += p("jmp [s + eax *8]")
 
     CC = 0
     for i in range(WIDTH + 1):
@@ -126,7 +137,8 @@ def main(filename):
             RC += 1
     asmcode += "done:\n"
     asmcode += p("ret")
-    asmcode += s()
+    if not LARGEADDRESSAWARE_YES:
+        asmcode += s()
     asmcode += "asmcode endp\n"
     asmcode += "end"
     with open("Native.asm", mode="w") as f:
