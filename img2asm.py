@@ -13,7 +13,13 @@ IMAGE = None
 with open("config.toml", "rt") as fp:
     config = toml.load(fp)
 
+PLATFORM = config["Option"]["compiler"]
 LARGEADDRESSAWARE_YES = config["Option"]["large_address_aware_yes"]
+
+if PLATFORM == "msvc":
+    OUTPUT_FILENAME = "Native.asm"
+else:
+    OUTPUT_FILENAME = "Native.s"
 
 
 def image_load(filename):
@@ -30,7 +36,10 @@ def p(code):
 
 
 def widen():
-    return p("vfmaddsub132ps xmm0,xmm1,[rdi+rsi*4+1111111111111111h]")
+    if PLATFORM == "msvc":
+        return p("vfmaddsub132ps xmm0,xmm1,[rdi+rsi*4+1111111111111111h]")
+    else:
+        return p("vfmaddsub132ps xmm0,xmm1,[rdi+rsi*4+0x11111111]")
 
 
 def init_widen():
@@ -43,7 +52,10 @@ def init_widen():
 def s():
     code = "s:\n"
     for i in range(WIDTH + 1):
-        code += p(f"dq e_0_{i}")
+        if PLATFORM == "msvc":
+            code += p(f"dq e_0_{i}")
+        else:
+            code += p(f".quad e_0_{i}")
     return code
 
 
@@ -114,8 +126,15 @@ def main(filename):
     image_load(filename)
 
     asmcode = ""
-    asmcode += ".code\n"
-    asmcode += "asmcode proc EXPORT\n"
+    if PLATFORM == "gnu":
+        asmcode += ".intel_syntax noprefix\n"
+
+    if PLATFORM == "msvc":
+        asmcode += ".code\n"
+        asmcode += "asmcode proc EXPORT\n"
+    else:
+        asmcode += ".global asmcode\n"
+        asmcode += "asmcode:\n"
     asmcode += init_widen()
     asmcode += p("nop")
     if LARGEADDRESSAWARE_YES:
@@ -139,9 +158,12 @@ def main(filename):
     asmcode += p("ret")
     if not LARGEADDRESSAWARE_YES:
         asmcode += s()
-    asmcode += "asmcode endp\n"
-    asmcode += "end"
-    with open("Native.asm", mode="w") as f:
+    if PLATFORM == "msvc":
+        asmcode += "asmcode endp\n"
+        asmcode += "end"
+    else:
+        pass
+    with open(OUTPUT_FILENAME, mode="w") as f:
         f.write(asmcode)
 
 

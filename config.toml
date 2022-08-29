@@ -1,5 +1,9 @@
 [Option]
+# msvc => msvc
+# clang/gcc/g++ => gnu
+compiler = "msvc"
 arch = "x64"
-# If true, it will output an assembly that will also work with LARGEADDRESSAWARE:YES.
+# 1)compiler:msvc => If true, it will output an assembly that will also work with LARGEADDRESSAWARE:YES.
+# 2)compiler:gnu => If true, it will output an assembly that will also work with -no-pie.
 # In this case, it will lose its shape slightly.
 large_address_aware_yes = false
